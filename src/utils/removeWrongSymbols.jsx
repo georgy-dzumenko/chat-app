@@ -1,1 +1,0 @@
-export const removeWrongSymbols = (a) => a.split('').filter(a => a !== "@" && a !== ".").join('')
