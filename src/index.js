@@ -4,20 +4,24 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+import {Auth as AuthPage} from './components/Auth'
+
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import {getFirestore} from "@firebase/firestore"
 import { Provider } from 'react-redux'
-import { createRoutesFromElements, Route, RouterProvider } from 'react-router';
+import { createRoutesFromElements, Route, RouterProvider, Routes } from 'react-router';
 import store from './redux/store'
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { green, grey, teal } from '@mui/material/colors';
-import { BrowserRouter, createBrowserRouter } from 'react-router-dom';
+import { BrowserRouter, createBrowserRouter, HashRouter } from 'react-router-dom';
 import Auth from './redux/auth';
 import { PersistGate } from 'redux-persist/integration/react'
 import {persistStore} from 'redux-persist';
 import { getDatabase } from "firebase/database";
+import { Main } from './components/Main/Main';
+import { Register } from './components/Register/Register';
 // import CssBaseline from "@material-ui/core/CssBaseline";
 // import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
 // TODO: Add SDKs for Firebase products that you want to use
@@ -94,15 +98,6 @@ const theme = createTheme({
   },
 });
 
-const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route path="/" element={<>
-      <CssBaseline/>
-      <App />
-    </>}>
-    </Route>
-  )
-);
 
 let persistor = persistStore(store)
 
@@ -111,10 +106,27 @@ root.render(
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <React.StrictMode>
-          <BrowserRouter>
-            <CssBaseline/>
-            <App />
-          </BrowserRouter>
+          <CssBaseline/>
+          <App />
+          <HashRouter basename={process.env.PUBLIC_URL + "/"}>
+          {/* <HashRouter basename={@}> */}
+            {/* <Route path="/"> */}
+              <Routes>
+                <Route
+                  index
+                  element={<Main/>}
+                />
+                <Route
+                  path="/auth"
+                  element={<AuthPage/>}
+                />
+                <Route
+                  path="/register"
+                  element={<Register/>}
+                />
+              </Routes>
+            {/* </Route> */}
+          </HashRouter>
         </React.StrictMode>
       </PersistGate>
     </Provider>

@@ -13,6 +13,7 @@ import { removeWrongSymbols } from "../../utils/removeWrongSymbols";
 import { addToChatLists } from "../../utils/addToChatLists";
 import MenuIcon from '@mui/icons-material/Menu';
 import { makeStyles } from "@mui/styles";
+import { Link } from "react-router-dom";
 
 const useStyles = makeStyles(theme => ({
     TopBar: {
@@ -183,12 +184,15 @@ const MainContent = () => {
                         }} color="primary" variant='contained'>
                             Sign out
                         </ButtonCTA>
-                        <ButtonCTA color="primary" variant='contained' href="/auth">
+                        {/* <ButtonCTA color="primary" variant='contained' href="/auth"> */}
+                        <Link to="/auth">
                             Sign in
-                        </ButtonCTA>
-                        <ButtonCTA color="primary" variant='contained' href="/register">
+                        </Link>
+                        {/* <ButtonCTA color="primary" variant='contained' href="/register"> */}
+                        <Link to="/register">
                             Register
-                        </ButtonCTA>
+                        </Link>
+                        {/* </ButtonCTA> */}
                     </Paper>
                 </Box>
                 <Box sx={{flex: "1", boxSizing: "border-box", maxHeight: "100vh", flex: "1", display: "flex", flexDirection: "column", padding: "15px 15px"}} xs={7}>

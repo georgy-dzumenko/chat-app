@@ -1,5 +1,5 @@
 import { async } from '@firebase/util';
-import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControl, Link, Slide, TextField, Typography } from '@mui/material';
+import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControl, Slide, TextField, Typography } from '@mui/material';
 import { green } from '@mui/material/colors';
 import { makeStyles } from '@mui/styles';
 import { Box } from '@mui/system';
@@ -14,6 +14,7 @@ import LoginIcon from '@mui/icons-material/Login';
 import GoogleIcon from '@mui/icons-material/Google';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import { child, get, getDatabase, ref } from 'firebase/database';
+import { Link } from 'react-router-dom';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -119,7 +120,7 @@ export const Auth = () => {
                 </Button>
             </DialogActions>
             <Box sx={{display: "flex", justifyContent: "center", width: "100%", padding: "6px 0"}}>
-                <Link color="text.main" href="/register">Sign Up</Link>
+                <Link color="text.main" to={"/register"}>Sign Up</Link>
             </Box>
         </Dialog>
     )

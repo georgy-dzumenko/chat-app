@@ -1,4 +1,5 @@
 {
+  "homepage": "https://georgy-dzumenko.github.io/chat-app",
   "name": "chat-app",
   "version": "0.1.0",
   "private": true,
@@ -50,7 +51,6 @@
       "last 1 safari version"
     ]
   },
-  "homepage": "git@github.com:georgy-dzumenko/chat-app.git",
   "devDependencies": {
     "@redux-devtools/core": "^3.13.1",
     "gh-pages": "^4.0.0"

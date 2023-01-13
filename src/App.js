@@ -28,21 +28,8 @@ function App() {
 
   return (
     <div>
-      <Typography variant='h1'>{data.displayName}</Typography>
-      <Routes>
-        <Route
-          path="/"
-          element={<Main/>}
-        />
-        <Route
-          path="/auth"
-          element={<Auth/>}
-        />
-        <Route
-          path="/register"
-          element={<Register/>}
-        />
-      </Routes>
+      {/* <Typography variant='h1'>{data.displayName}</Typography> */}
+      
     </div>
   );
 }
