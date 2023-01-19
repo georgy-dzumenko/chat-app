@@ -27,8 +27,6 @@ async function loginWithGoogle(dispatch) {
 
         const { user } = await signInWithPopup(auth, provider);
 
-        console.log("user", user);
-
         dispatch(setAuth(user))
 
         return { uid: user.uid, displayName: user.displayName };

@@ -9,12 +9,6 @@ import { Register } from './components/Register/Register';
 import { Main } from './components/Main/Main';
 import { useEffect } from 'react';
 
-// const useStyles = makeStyles((theme) => {
-
-//   console.log("teme", theme.palette);
-//   return({
-// })})
-
 function App() {
   const {data} = useSelector(({authReducer}) => authReducer)
   const navigate = useNavigate();

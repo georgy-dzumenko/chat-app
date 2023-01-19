@@ -22,6 +22,8 @@ import {persistStore} from 'redux-persist';
 import { getDatabase } from "firebase/database";
 import { Main } from './components/Main/Main';
 import { Register } from './components/Register/Register';
+import createEmotionCache from './utils/createEmotionCache';
+import { CacheProvider } from '@emotion/react';
 // import CssBaseline from "@material-ui/core/CssBaseline";
 // import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
 // TODO: Add SDKs for Firebase products that you want to use
@@ -43,7 +45,6 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
-console.log("database", database)
 const analytics = getAnalytics(app);
 export const firestore = getFirestore(app);
 
@@ -57,6 +58,11 @@ const theme = createTheme({
       light: "#78a85d",
       dark: "#78a85d",
       contrastText: "#fff",
+    },
+    secondary: {
+      light: '#115724',
+      main: '#104a20',
+      contrastText: '#9afb9f',
     },
     textInput: {
       main: "#fff",
@@ -74,14 +80,10 @@ const theme = createTheme({
     },
     text: {
       main: green[100],
+      secondary: "rgba(255, 255, 255, 0.7)"
     },
     typography: {
       color: green[100]
-    },
-    secondary: {
-      light: '#373739',
-      main: '#0044ff',
-      contrastText: '#9afb9f',
     },
     custom: {
       light: '#ffa726',
@@ -101,36 +103,40 @@ const theme = createTheme({
 
 let persistor = persistStore(store)
 
+const clientSideEmotionCache = createEmotionCache();
+
 root.render(
-  <ThemeProvider theme={theme}>
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <React.StrictMode>
-          <CssBaseline/>
-          <App />
-          <HashRouter basename={process.env.PUBLIC_URL + "/"}>
-          {/* <HashRouter basename={@}> */}
-            {/* <Route path="/"> */}
-              <Routes>
-                <Route
-                  index
-                  element={<Main/>}
-                />
-                <Route
-                  path="/auth"
-                  element={<AuthPage/>}
-                />
-                <Route
-                  path="/register"
-                  element={<Register/>}
-                />
-              </Routes>
-            {/* </Route> */}
-          </HashRouter>
-        </React.StrictMode>
-      </PersistGate>
-    </Provider>
-  </ThemeProvider>
+  // <CacheProvider value={clientSideEmotionCache}>
+    <ThemeProvider theme={theme}>
+        <Provider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <React.StrictMode>
+              <CssBaseline/>
+              <HashRouter>
+                  <App />
+              {/* <HashRouter basename={@}> */}
+                {/* <Route path="/"> */}
+                  <Routes>
+                    <Route
+                      index
+                      element={<Main/>}
+                    />
+                    <Route
+                      path="/auth"
+                      element={<AuthPage/>}
+                    />
+                    <Route
+                      path="/register"
+                      element={<Register/>}
+                    />
+                  </Routes>
+                {/* </Route> */}
+              </HashRouter>
+            </React.StrictMode>
+          </PersistGate>
+        </Provider>
+    </ThemeProvider>
+  // </CacheProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

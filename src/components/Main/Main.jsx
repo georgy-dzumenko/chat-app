@@ -1,4 +1,4 @@
-import { AppBar, CircularProgress, Divider, Grid, IconButton, Input, List, ListItemButton, ListItemIcon, ListItemText, ListSubheader, Paper, Toolbar, Typography } from "@mui/material"
+import { Avatar, CircularProgress, Divider, Grid, IconButton, Input, List, ListItemButton, ListItemIcon, ListItemText, ListSubheader, Paper, Toolbar, Typography } from "@mui/material"
 import { useDispatch, useSelector } from "react-redux"
 import { ButtonCTA } from "../ButtonCTA/ButtonCTA"
 import { getDatabase, ref, set, get, child, onValue, push } from "firebase/database";
@@ -7,22 +7,16 @@ import { Box } from "@mui/system";
 import { getAuth, signOut } from "firebase/auth";
 import { InputCTA } from "../InputCTA/InputCTA";
 import { setAuth } from "../../redux/auth";
-import { selectChat, setChatData, setFriendData } from "../../redux/chat";
+import { selectChat, setChatData, setFriendData, setLoading } from "../../redux/chat";
 import { Chat } from "../Chat/Chat";
 import { removeWrongSymbols } from "../../utils/removeWrongSymbols";
 import { addToChatLists } from "../../utils/addToChatLists";
 import MenuIcon from '@mui/icons-material/Menu';
 import { makeStyles } from "@mui/styles";
 import { Link } from "react-router-dom";
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 
 const useStyles = makeStyles(theme => ({
-    TopBar: {
-        display: "none",
-        width: "100%",
-        [theme.breakpoints.down('sm')]: {
-            display: "block"
-        },
-    },
     Navigation: {
         transform: "translate(0)",
         [theme.breakpoints.down('sm')]: {
@@ -30,83 +24,126 @@ const useStyles = makeStyles(theme => ({
             transition: "0.1s ease",
             transform: "translate(-100%)",
             height: "100vh",
-            marginTop: "-56px",
             // flex: "1"
-            width: "80%",
+            width: "100%",
             zIndex: "10"
         },
     },
+    itemListSelected: {
+        background: "#fff"
+    },
+    '@global': {
+        ".chip-animation-in": {
+            animation: "$chip-animation-in 0.2s"
+        },
+        ".chip-animation-out": {
+            transition: "0.2s ease",
+            opacity: 0
+        },
+        ".highlight-message": {
+            animation: "$myEffect 2s"
+        },
+        "@keyframes chip-animation-in": {
+            "0%": {
+                transform: "scale(0)"
+            },
+            "100%": {
+                transform: "scale(1)"
+            }
+        },
+        "@keyframes myEffect": {
+            "0%": {
+            //   opacity: 0,
+                borderRadius: "20px",
+                background: "none",
+                boxShadow: "0 0 0 0 #fff"
+            },
+            "25%": {
+                borderRadius: "20px",
+                background: "#fff",
+                boxShadow: "0 0 10px 0 #fff"
+            },
+            "100%": {
+                borderRadius: "20px",
+                background: "none",
+                boxShadow: "0 0 0 0 #fff"
+            }
+        },
+        '*::-webkit-scrollbar': {
+          width: '0.4em'
+        },
+        '*::-webkit-scrollbar-track': {
+          '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.00)'
+        },
+        '*::-webkit-scrollbar-thumb': {
+          background: 'linear-gradient(0deg, #135c27, #135c27, #78a85d)',
+          borderRadius: "3px"
+        },
+        '*::selection': {
+            display: "inline-block",
+            background: "#fff",
+            borderRadius: "3px",
+            color: theme.palette.primary.main,
+            textShadow: "#000 0 0 0",
+            transition: "0.3s ease"
+        }
+      }
 }))
 
 const MainContent = () => {
     const userData = useSelector(state => state.authReducer?.data)
     const db = getDatabase();
     const dbRef = ref(db);
-    const [isOpened, setOpened] = useState(false)
+    const [isOpened, setOpened] = useState(true)
     let classes = useStyles({isOpened})
     const chatData = useSelector(state => state.chat);
     const messages = useSelector(state => state.chat.messages);
-    const [loading, setLoading] = useState(true);
     const [newMessage, setNewMessage] = useState("");
     const [friendEmail, setFriendEmail] = useState("");
     const friendData  = useSelector(state => state.chat.friendData);
     const selectedChat = useSelector(state => state.chat.uid);
     const dispatch = useDispatch();
 
-    console.log("userdata", selectedChat)
-
     useEffect(() => {
         if(selectedChat) {
             const messagesRef = ref(db, `${selectedChat}`);
             onValue(messagesRef, (snapshot) => {
                 const data = snapshot.val();
-                dispatch(setChatData({...chatData, ...data, messages: data.messages, uid: selectedChat}));
-                setLoading(false)
-            });
-            onValue(ref(db, `users/${removeWrongSymbols(userData.email)}`), (snapshot) => {
-                const data = snapshot.val();
-                let result = [];
-                (async () => {
-                    await data.chats.forEach((a) => {
-                        // console.log("a", a)
-                        get(child(dbRef, a)).then((chatObject) => {
-                            let email = chatObject.val().users?.find((b) => b !== userData.email);
-                            console.log("chatObject", a)
-                            result = [...result, {
-                                uid: a,
-                                email
-                            }]
-                            console.log("result", result)
-                            dispatch(setAuth({...userData, userData: {...data, chats: result}}));
-                        })
-                    })
-                })()
 
+                if(!data) {
+                    dispatch(setChatData({}))
+                    return
+                }
+
+                dispatch(setChatData({...chatData, ...data, messages: data.messages, uid: selectedChat}));
             });
+            dispatch(setLoading(false))
         }
+        onValue(ref(db, `users/${removeWrongSymbols(userData.email)}`), (snapshot) => {
+            const data = snapshot.val();
+            let result = [];
+            (async () => {
+                await data.chats.forEach((a) => {
+                    get(child(dbRef, a)).then((chatObject) => {
+                        let email = chatObject.val()?.users?.find((b) => b !== userData.email);
+                        result = [...result, {
+                            uid: a,
+                            email
+                        }]
+                        dispatch(setAuth({...userData, userData: {...data, chats: result}}));
+                    })
+                })
+            })()
+
+        });
     }, [friendData, selectedChat])
 
+    useEffect(() => {
+        dispatch(setLoading(!selectedChat))
+    }, [])
+
     return <>
-        <Box display={{height: "100vh", display: "flex", flexDirection: "column"}}>
-            <Box className={classes.TopBar}>
-                <AppBar position="static">
-                    <Toolbar>
-                    <IconButton
-                        size="large"
-                        edge="start"
-                        color="inherit"
-                        aria-label="menu"
-                        sx={{ mr: 2 }}
-                        onClick={() => setOpened(!isOpened)}
-                    >
-                        <MenuIcon />
-                    </IconButton>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        Chatapp
-                    </Typography>
-                    </Toolbar>
-                </AppBar>
-            </Box>
+        <Box display={{height: "100vh", overflowY: "hidden", display: "flex", flexDirection: "column"}}>
             <Box display={{display: "flex", flex: "1"}}>
                 <Box
                     className={classes.Navigation}
@@ -118,28 +155,19 @@ const MainContent = () => {
                         sx={{
                             height: "100%",
                             width: "100%",
+                            display: "flex",
+                            flexDirection: "column"
                         }}
                     >
                         <Paper
                             color="inputPaper.main"
                             component="form"
-                            sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: "100%" }}
+                            sx={{ p: '2px 4px', display: "felx", alignItems: 'center', width: "100%" }}
                         >
-                            <IconButton
-                                size="large"
-                                edge="start"
-                                color="inherit"
-                                aria-label="menu"
-                                sx={{ mr: 2 }}
-                                onClick={() => setOpened(!isOpened)}
-                            >
-                                <MenuIcon />
-                            </IconButton>
                             <InputCTA onChange={(event) => setFriendEmail(event.target.value)} value={friendEmail} label="email"></InputCTA>
                             <ButtonCTA onClick={() => {
                                 get(child(dbRef, `users/${removeWrongSymbols(friendEmail)}`)).then((userSnapshot) => {
                                     if (userSnapshot.exists()) {
-                                        console.log("usersnap", friendEmail, userSnapshot.val().uid, userData.email, userData.uid)
                                         dispatch(setFriendData(userSnapshot.val()));
                                         let newSelectedChat = `${userData.uid}&${userSnapshot.val().uid}`;
                                         get(child(dbRef, newSelectedChat)).then((snapshot2) => {
@@ -161,42 +189,81 @@ const MainContent = () => {
                             }}>FIND</ButtonCTA>
                         </Paper>
                         <List
-                            sx={{ width: '100%', flex: "1", bgcolor: 'background.paper' }}
                             component="nav"
+                            sx={{ width: '100%', flex: "1", bgcolor: 'background.paper' }}
                             aria-labelledby="nested-list-subheader"
                         >
-                            <Divider/>
+                            <Divider color="#444"/>
                             {
                                 <>
                                     {userData?.userData?.chats?.map(({uid, email}) => <>
-                                        <ListItemButton selected={uid === selectedChat} onClick={() => dispatch(selectChat(uid))} sx={{color: "text.main", width: "100%", height: "70px", marginTop: "2px"}}>
-                                            <ListItemText fontSize={20} style={{fontSize: 25, color: "text.main"}} primary={email} secondary="Jan 9, 2014"/>
+                                        <ListItemButton
+                                            selected={uid === selectedChat}
+                                            onClick={() => {
+                                                dispatch(selectChat(uid))
+                                                dispatch(setLoading(true))
+                                                dispatch(setFriendData({uid, email}));
+                                                setOpened(false)
+                                            }}
+                                            // color="secondary"
+                                            sx={{
+                                                width: "100%",
+                                                height: "70px",
+                                                "&.Mui-selected": {
+                                                    backgroundColor: "secondary.main",
+                                                    "&:hover": {
+                                                        backgroundColor: "secondary.light",
+                                                    }
+                                                },
+                                            }}
+                                            // selectedItemStyle={{
+                                            //     backgroundColor: 'red'
+                                            // }}
+                                            // classes={{selected: classes.itemListSelected}}
+                                        >
+                                            <ListItemIcon>
+                                                <Avatar color="primary" alt={email} src="/static/images/avatar/1.jpg" />
+                                            </ListItemIcon>
+                                            <ListItemText
+                                                fontSize={20}
+                                                style={{fontSize: 25, color: "text.main"}}
+                                                primary={email}
+                                                primaryTypographyProps={{
+                                                    color: 'text.main',
+                                                    fontWeight: 'bold',
+                                                    variant: 'body2',
+                                                }}
+                                                secondaryTypographyProps={{
+                                                    color: 'text.main',
+                                                    opacity: 0.5,
+                                                    fontWeight: 'medium',
+                                                    variant: 'body2',
+                                                }}
+                                                secondary="Jan 9, 2014"
+                                            />
                                         </ListItemButton>
-                                        <Divider/>
+                                        <Divider color="#444"/>
                                     </>)}
                                 </>
 
                             }
                         </List>
-                        <ButtonCTA onClick={() => {
-                            signOut(getAuth())
-                            dispatch(setAuth({}))
-                        }} color="primary" variant='contained'>
-                            Sign out
-                        </ButtonCTA>
-                        {/* <ButtonCTA color="primary" variant='contained' href="/auth"> */}
-                        <Link to="/auth">
-                            Sign in
-                        </Link>
-                        {/* <ButtonCTA color="primary" variant='contained' href="/register"> */}
-                        <Link to="/register">
-                            Register
-                        </Link>
-                        {/* </ButtonCTA> */}
+                        <Divider color="#444"/>
+                        <Box sx={{display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center", padding: "15px"}}>
+                            <Avatar alt={userData.email} src="/asdlfjasdf" />
+                            <Typography component="h3" color="text.main" variant="p">{userData.email?.slice(0, userData.email.split("").findIndex(a => a === "@"))}</Typography>
+                            <IconButton onClick={() => {
+                                signOut(getAuth())
+                                dispatch(setAuth({}))
+                            }} color="primary" variant='contained'>
+                                <LogoutRoundedIcon/>
+                            </IconButton>
+
+                        </Box>
                     </Paper>
                 </Box>
-                <Box sx={{flex: "1", boxSizing: "border-box", maxHeight: "100vh", flex: "1", display: "flex", flexDirection: "column", padding: "15px 15px"}} xs={7}>
-                    <Chat/>
+                <Box sx={{maxWidth: "100vw", paddingBottom: "55px", position: "relative", flex: "1", boxSizing: "border-box", maxHeight: "100vh", flex: "1", display: selectedChat ? "flex" : "none", flexDirection: "column"}} xs={7}>
+                    <Chat setOpened={setOpened}/>
                 </Box>
             </Box>
         </Box>
